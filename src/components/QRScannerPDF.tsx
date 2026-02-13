@@ -1,11 +1,13 @@
 import { useState } from "react";
-
-// next
 import dynamic from "next/dynamic";
 
-const QrReader = dynamic(() => import("react-qr-reader").then((o) => o.QrReader), { ssr: false });
+const QrReader = dynamic(() => import("@yudiel/react-qr-scanner").then((mod) => mod.Scanner), { ssr: false });
 
-function QRScannerPDF({ handleQRCodeScan }: { handleQRCodeScan?: (data: string) => void }) {
+type Props = {
+  handleQRCodeScan?: (data: string) => void;
+};
+
+function QRScannerPDF({ handleQRCodeScan }: Props) {
   const [scanned, setScanned] = useState(false);
 
   const handleError = (err: any) => {
@@ -15,13 +17,16 @@ function QRScannerPDF({ handleQRCodeScan }: { handleQRCodeScan?: (data: string) 
   return (
     <div>
       <QrReader
-        constraints={{ facingMode: { ideal: "environment" } }}
-        onResult={(result, error) => {
-          if (!!result) handleQRCodeScan?.(result.getText());
-          if (!!error) handleError(error);
+        constraints={{ facingMode: "environment" }}
+        onScan={(result) => {
+          if (result?.[0]?.rawValue) {
+            handleQRCodeScan?.(result[0].rawValue);
+            setScanned(true);
+          }
         }}
-        containerStyle={{ width: "100%" }}
+        onError={handleError}
       />
+
       <p>{scanned ? "PDF downloaded!" : "Scan QR to download PDF"}</p>
     </div>
   );
